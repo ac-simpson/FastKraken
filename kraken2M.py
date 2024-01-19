@@ -34,6 +34,7 @@ Oflag.add_argument('-t', '--threads', action="store", type=str, default = 1, req
 Oflag.add_argument('--gzip-compressed', action="store_true", required = False,
                     help = "Input files are compressed with gzip.")
 
+
 if not debug:
     opt = parser.parse_args()
     args = vars(opt)
@@ -112,20 +113,19 @@ else:
 
 # %% running kraken2
 logging.info('*' * 15 + ' running kraken2 ' + '*' * 15)
-if os.path.isfile(tmpDir + '/classified_seqs.fastq') or os.path.isfile(tmpDir + '/unclassified_seqs.fastq') or os.path.isfile(tmpDir + '/classified_seqs_1.fastq') or os.path.isfile(tmpDir + '/unclassified_seqs_1.fastq'):
+if os.path.isfile(tmpDir + '/classified_seqs'+suffix[0]) or os.path.isfile(tmpDir + '/unclassified_seqs'+suffix[0]) or os.path.isfile(tmpDir + '/classified_seqs_1'+suffix[0]) or os.path.isfile(tmpDir + '/unclassified_seqs_1'+suffix[0]):
     logging.info('Kraken2 classification looks like already done, skip and continue next part.')
 else:
     if mode == 'single-end':
-        command = [args['kraken2'], '--threads', args['threads'], '--db', args['db'], 
+        command = [args['kraken'], '--threads', args['threads'], '--db', args['db'],
                    '--confidence', str(args['confidence']),
-                   '--classified-out', tmpDir + '/classified_seqs.fastq', 
-                   '--unclassified-out', tmpDir + '/unclassified_seqs.fastq',
+                   '--classified-out', tmpDir + '/classified_seqs'+suffix[0],
+                   '--unclassified-out', tmpDir + '/unclassified_seqs'+suffix[0],
                    '--report', tmpDir + '/' + 'report.txt',
-                   '--output', tmpDir + '/' + 'output.txt',
-                   '--use-names']
+                   '--output', tmpDir + '/' + 'output.txt']
         if args['gzip_compressed']:
             command.append('--gzip-compressed')
-        command = command.append(tmpDir + '/' + suffix[0])
+        command.append(tmpDir + '/' + suffix[0])
     else:
         command = [args['kraken'], '--threads', args['threads'], '--db', args['db'], 
                    '--paired', tmpDir + '/' + suffix[0], tmpDir + '/' + suffix[1],
@@ -145,14 +145,13 @@ else:
 
 # %% count reads for each sample
 logging.info('*' * 15 + ' count reads ' + '*' * 15)
+def countReads(infile):
+    return(len([1 for line in open(infile) if line.startswith(">")]))
 readCounts = []
 for i,f in enumerate(fileNameList):
-    catMode = 'cat'
-    if args['gzip_compressed']:
-        catMode = 'zcat'
-    command = [catMode, args['input'] + '/' + fileNameList[i] + suffix[0], '| echo $((`wc -l`/4))']
-    rn = os.popen(' '.join(command)).read().strip()
-    logging.info(str(i+1) + '/' + str(len(fileNameList)) + ': ' + f + suffix[0] + ' : ' + rn)
+    current_file = args['input'] + '/' + fileNameList[i] + suffix[0]
+    rn = countReads(current_file)
+    logging.info(str(i+1) + '/' + str(len(fileNameList)) + ': ' + f + suffix[0] + ' : ' + str(rn))
     readCounts.append(int(rn))
 
 # %% split output.txt sample by sample
@@ -207,16 +206,5 @@ if not os.path.isfile(args['db'] + '/mydb_taxonomy.txt'):
 else:
     logging.info('No need to make ktaxonomy again, already exist in this DB.')
 
-# make kreport
-logging.info('start converting')
-for i,s in enumerate(fileNameList):
-    command = ['python', args['kraken_tools'] + '/make_kreport.py', 
-            '-i', args['output'] + '/' + s + 'out.txt', 
-            '-t', args['db'] + '/mydb_taxonomy.txt',
-            '-o', args['output'] + '/' + s + 'kreport.txt']
-    command = ' '.join(command)
-    logging.info(str(i+1) + '/' + str(len(fileNameList)) + ': ' + s + 'out.txt -> ' + s + 'kreport.txt')
-    stat = os.system(command)
-    if not stat == 0:
-        logging.warning('fail converting')
-logging.info('all done')
+
+logging.info('all done with running kraken2 and generating results; now to generate reports using modified krakentools')
