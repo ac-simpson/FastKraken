@@ -3,6 +3,11 @@
 #################################################################
 # Xin Wei, xwei97@zju.edu.cn
 # Updated: 07/06/2021
+#
+# Modified by Anna Simpson, 10/23/23
+# To QC for fasta/unpaired data
+# And remove kreport step, to modify for faster kreport
+#
 debug = False
 # %% import modules
 import argparse, os, re, sys, subprocess, logging
