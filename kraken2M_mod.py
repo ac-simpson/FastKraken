@@ -186,7 +186,7 @@ else:
 logging.info('*' * 15 + ' convert results to report ' + '*' * 15)
 if not os.path.isfile(args['db'] + '/mydb_taxonomy.txt'):
     logging.info('Making ktaxonomy ...')
-    command = ['python', args['kraken_tools'] + '/make_ktaxonomy.py', 
+    command = ['python', 'make_ktaxonomy.py',
                '--node', args['db'] + '/taxonomy' + '/nodes.dmp',
                '--names', args['db'] + '/taxonomy' + '/names.dmp',
                '--seqid2taxid', args['db'] + '/seqid2taxid.map',

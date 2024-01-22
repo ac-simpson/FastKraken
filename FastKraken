@@ -2,6 +2,7 @@
 
 
 gzipped=false
+readlength=true
 
 
 #Show options
@@ -14,10 +15,11 @@ function help {
   echo "-t  Number of threads (OPTIONAL)"
   echo "-g  Is file gzip compressed? options: true or false (defaults to false). Example: -g true (OPTIONAL)"
   echo "-l  Specify location of FastKraken scripts if not placed in path (OPTIONAL)"
+  echo "-r  Use read lengths rather than read counts when generating kreport options: true or false (defaults to true). Better option when inputs are contigs or long reads. Example: -g true (OPTIONAL)"
   exit 1
 }
 
-while getopts :i:s:d:o:t:glh args
+while getopts :i:s:d:o:t:g:l:r:h args
 do
     case "${args}"
     in
@@ -27,6 +29,7 @@ do
         o) out_dir=${OPTARG};;
         t) threads=${OPTARG};;
         g) gzipped=${OPTARG};;
+        r) readlength=${OPTARG};;
         l) location_of_github_scripts=${OPTARG};;
         h) help ;;
 #        \?) help ;;
@@ -99,6 +102,13 @@ fi
 
 echo "Finished running kraken2; now making kreports"
 
-make_kreport_mod.py -idir $out_dir/kraken_output -t $kraken_db/mydb_taxonomy.txt -odir mkdir $out_dir/kreports --use-read-len
+
+
+
+if [ "$readlength" = true ]; then
+    make_kreport_mod.py -idir $out_dir/kraken_output -t $kraken_db/mydb_taxonomy.txt -odir $out_dir/kreports --use-read-len
+else
+    make_kreport_mod.py -idir $out_dir/kraken_output -t $kraken_db/mydb_taxonomy.txt -odir $out_dir/kreports
+fi
 
 echo "DONE"
