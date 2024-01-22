@@ -1,0 +1,104 @@
+#!/bin/bash
+
+
+gzipped=false
+
+
+#Show options
+function help {
+  echo -e \\n"FastKraken"\\n
+  echo "-i  Directory of sequencing files as input for Kraken2 (REQUIRED)"
+  echo "-d  Path to Kraken2 database (REQUIRED)"
+  echo "-s  Suffix of sequencing files, e.g. 'R1.fastq,R2.fastq' for paired-end files, '.fq' for single-end files. (REQUIRED)"
+  echo "-o  Directory in which to store results (REQUIRED)"
+  echo "-t  Number of threads (OPTIONAL)"
+  echo "-g  Is file gzip compressed? options: true or false (defaults to false). Example: -g true (OPTIONAL)"
+  echo "-l  Specify location of FastKraken scripts if not placed in path (OPTIONAL)"
+  exit 1
+}
+
+while getopts :i:s:d:o:t:glh args
+do
+    case "${args}"
+    in
+        i) in_dir=${OPTARG};;
+        s) suffix=${OPTARG};;
+        d) kraken_db=${OPTARG};;
+        o) out_dir=${OPTARG};;
+        t) threads=${OPTARG};;
+        g) gzipped=${OPTARG};;
+        l) location_of_github_scripts=${OPTARG};;
+        h) help ;;
+#        \?) help ;;
+    esac
+done
+
+
+
+## if no arguments, show options
+if [[ $# -eq 0 ]] ; then
+    >&2 echo "No arguments provided"
+    help
+fi
+
+## if the location of the github scripts is specified, then add it to path
+if [ "$location_of_github_scripts" ] ; then
+  export PATH="$location_of_github_scripts:$PATH"
+fi
+
+## check if the modified python scripts are present
+if ! command -v kraken2M_mod.py &> /dev/null
+then
+    echo "The script kraken2M_mod.py could not be found - either specify path to the directory containing the script using option -l, or move the script to a location in your path."
+    exit 1
+fi
+
+if ! command -v make_kreport_mod.py &> /dev/null
+then
+    echo "The script make_kreport_mod.py could not be found - either specify path to the directory containing the script using option -l, or move the script to a location in your path."
+    exit 1
+fi
+
+if ! command -v make_ktaxonomy.py &> /dev/null
+then
+    echo "The script make_ktaxonomy.py could not be found - either specify path to the directory containing the script using option -l, or move the script to a location in your path."
+    exit 1
+fi
+
+## check for mandatory arguments
+if [ ! "$in_dir" ] || [ ! "$suffix" ] || [ ! "$kraken_db" ] || [ ! "$out_dir" ] || [ ! "$threads" ]; then
+  echo -e "arguments -i, -s, -d, t and -o must be provided"\\n
+  help
+fi
+
+if test -d $out_dir; then
+    echo "The directory $out_dir already exists; please specify a new name for your output directory"
+    exit 1
+fi
+
+echo -e "FASTKRAKEN input parameters:"\\n
+echo "Directory of input sequencing files: $in_dir"
+echo "Suffix indicating ending of sequencing file names: $suffix"
+echo "Location of Kraken database: $kraken_db"
+echo "Number of threads: $threads"
+echo -e "Input files are gzipped: $gzipped"\\n
+
+
+
+mkdir $out_dir
+mkdir $out_dir/kraken_output
+mkdir $out_dir/kreports
+
+echo "Running kraken2 and creating taxonomy database for KrakenTools"
+
+if [ "$gzipped" = true ]; then
+    kraken2M_mod.py -i $in_dir -s $suffix -d $kraken_db -o $out_dir/kraken_output -t $threads --gzip-compressed
+else
+    kraken2M_mod.py -i $in_dir -s $suffix -d $kraken_db -o $out_dir/kraken_output -t $threads
+fi
+
+echo "Finished running kraken2; now making kreports"
+
+make_kreport_mod.py -idir $out_dir/kraken_output -t $kraken_db/mydb_taxonomy.txt -odir mkdir $out_dir/kreports --use-read-len
+
+echo "DONE"
