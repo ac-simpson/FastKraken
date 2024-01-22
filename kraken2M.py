@@ -25,11 +25,11 @@ Rflag.add_argument('-s', '--suffix', action="store", type=str, required = True, 
                     help="Specify the suffix of reads files, e.g. 'R1.fastq,R2.fastq' for paired-end files, '.fq' for single-end files.")
 Rflag.add_argument('-d', '--db', action="store", type=str, required = True, 
                     help= "Name for Kraken2 DB.")
-Rflag.add_argument('-k', '--kraken', action="store", type=str, required = True, default = None, 
-                    help= "Path of Kraken2 program.")
-Rflag.add_argument('-kt', '--kraken-tools', action="store", type=str, required = True, default = None,
-                    help= "Path of KrakenTools by jenniferlu717.") 
+#Rflag.add_argument('-kt', '--kraken-tools', action="store", type=str, required = True, default = None,
+#                    help= "Path of KrakenTools by jenniferlu717.")
 Oflag = parser.add_argument_group('OPTIONAL PARAMETERS')
+Rflag.add_argument('-k', '--kraken', action="store", type=str, required = False, default = "kraken2",
+                    help= "Path of Kraken2 program.")
 Oflag.add_argument('-o', '--output', default = './kraken2_output', type = str, action = "store", required = False,
                     help = 'A directory for saving output files.')
 Oflag.add_argument('-c', '--confidence', action="store", type=str, default = 0, required = False,
@@ -39,21 +39,22 @@ Oflag.add_argument('-t', '--threads', action="store", type=str, default = 1, req
 Oflag.add_argument('--gzip-compressed', action="store_true", required = False,
                     help = "Input files are compressed with gzip.")
 
-
-if not debug:
-    opt = parser.parse_args()
-    args = vars(opt)
-if debug:
-    parser.print_help()
-    opt = parser.parse_args(['--input', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/cleandata', 
-                            '--suffix', 'R1.fq,R2.fq',
-                            '--db', '/share/home/jianglab/weixin/data/kraken2/cdb/viral',
-                            '--kraken', '/share/home/jianglab/weixin/bin/kraken2/kraken2',
-                            '--kraken-tools', '/share/home/jianglab/weixin/workspace/mytools/ktools/KrakenTools',
-                            '--output', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/kraken2_output',
-                            '--threads', '8'])
-    args = vars(opt)
-    print(args)
+opt = parser.parse_args()
+args = vars(opt)
+#if not debug:
+#    opt = parser.parse_args()
+#    args = vars(opt)
+#if debug:
+#    parser.print_help()
+#    opt = parser.parse_args(['--input', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/cleandata',
+#                            '--suffix', 'R1.fq,R2.fq',
+#                            '--db', '/share/home/jianglab/weixin/data/kraken2/cdb/viral',
+#                            '--kraken', '/share/home/jianglab/weixin/bin/kraken2/kraken2',
+#                            '--kraken-tools', '/share/home/jianglab/weixin/workspace/mytools/ktools/KrakenTools',
+#                            '--output', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/kraken2_output',
+#                            '--threads', '8'])
+#    args = vars(opt)
+#    print(args)
 
 args['input'] = os.path.abspath(args['input'])
 args['output'] = os.path.abspath(args['output'])
@@ -69,8 +70,8 @@ if len(suffix) not in [1, 2]:
     sys.exit()
 if not os.path.isdir(args['db']):
     logging.error('Unable to find the Kraken2 DB in ' + args['db'] + '.')
-if args['kraken_tools'] == None or (not os.path.isdir(args['kraken_tools'])):
-    logging.error('Unable to find KrakenTools.')
+#if args['kraken_tools'] == None or (not os.path.isdir(args['kraken_tools'])):
+#    logging.error('Unable to find KrakenTools.')
 # %% logging DB information
 log_path = os.path.join(args['output'], "log.log")
 logging.basicConfig(filename = log_path, level = logging.DEBUG, force = True, 
@@ -114,7 +115,7 @@ if not os.path.isfile(tmpDir + '/' + suffix[0]):
             os.system(command)
     logging.info('end')
 else:
-    logging.info('The concatenated file already exit.')
+    logging.info('The concatenated file already exists.')
 
 # %% running kraken2
 logging.info('*' * 15 + ' running kraken2 ' + '*' * 15)
@@ -126,7 +127,6 @@ else:
                    '--confidence', str(args['confidence']),
                    '--classified-out', tmpDir + '/classified_seqs'+suffix[0],
                    '--unclassified-out', tmpDir + '/unclassified_seqs'+suffix[0],
-                   '--report', tmpDir + '/' + 'report.txt',
                    '--output', tmpDir + '/' + 'output.txt']
         if args['gzip_compressed']:
             command.append('--gzip-compressed')
@@ -137,7 +137,6 @@ else:
                    '--confidence', str(args['confidence']),
                    '--classified-out', tmpDir + '/classified_seqs#.fastq', 
                    '--unclassified-out', tmpDir + '/unclassified_seqs#.fastq',
-                   '--report', tmpDir + '/' + 'report.txt',
                    '--output', tmpDir + '/' + 'output.txt',
                    '--use-names']
         if args['gzip_compressed']:
