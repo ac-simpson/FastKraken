@@ -39,22 +39,22 @@ Oflag.add_argument('-t', '--threads', action="store", type=str, default = 1, req
 Oflag.add_argument('--gzip-compressed', action="store_true", required = False,
                     help = "Input files are compressed with gzip.")
 
-opt = parser.parse_args()
-args = vars(opt)
-#if not debug:
-#    opt = parser.parse_args()
-#    args = vars(opt)
-#if debug:
-#    parser.print_help()
-#    opt = parser.parse_args(['--input', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/cleandata',
-#                            '--suffix', 'R1.fq,R2.fq',
-#                            '--db', '/share/home/jianglab/weixin/data/kraken2/cdb/viral',
-#                            '--kraken', '/share/home/jianglab/weixin/bin/kraken2/kraken2',
-#                            '--kraken-tools', '/share/home/jianglab/weixin/workspace/mytools/ktools/KrakenTools',
-#                            '--output', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/kraken2_output',
-#                            '--threads', '8'])
-#    args = vars(opt)
-#    print(args)
+#opt = parser.parse_args()
+#args = vars(opt)
+if not debug:
+    opt = parser.parse_args()
+    args = vars(opt)
+if debug:
+    parser.print_help()
+    opt = parser.parse_args(['--input', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/cleandata',
+                            '--suffix', 'R1.fq,R2.fq',
+                            '--db', '/share/home/jianglab/weixin/data/kraken2/cdb/viral',
+                            '--kraken', '/share/home/jianglab/weixin/bin/kraken2/kraken2',
+                            '--kraken-tools', '/share/home/jianglab/weixin/workspace/mytools/ktools/KrakenTools',
+                            '--output', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/kraken2_output',
+                            '--threads', '8'])
+    args = vars(opt)
+    print(args)
 
 args['input'] = os.path.abspath(args['input'])
 args['output'] = os.path.abspath(args['output'])
@@ -192,6 +192,7 @@ if not os.path.isfile(args['db'] + '/mydb_taxonomy.txt'):
                '--seqid2taxid', args['db'] + '/seqid2taxid.map',
                '-o', args['db'] + '/mydb_taxonomy.txt']
     command = ' '.join(command)
+    #os.system("echo "+command)
     logging.debug('command: ', command)
     logging.info('start')
     process = subprocess.Popen(command, shell = True,
