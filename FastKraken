@@ -8,6 +8,7 @@ readlength=true
 #Show options
 function help {
   echo -e \\n"FastKraken"\\n
+  echo -e "This script requires that kraken2 be installed in your path."\\n
   echo "-i  Directory of sequencing files as input for Kraken2 (REQUIRED)"
   echo "-d  Path to Kraken2 database (REQUIRED)"
   echo "-s  Suffix of sequencing files, e.g. 'R1.fastq,R2.fastq' for paired-end files, '.fq' for single-end files. (REQUIRED)"
@@ -84,7 +85,8 @@ echo "Directory of input sequencing files: $in_dir"
 echo "Suffix indicating ending of sequencing file names: $suffix"
 echo "Location of Kraken database: $kraken_db"
 echo "Number of threads: $threads"
-echo -e "Input files are gzipped: $gzipped"\\n
+echo "Input files are gzipped: $gzipped"\\n
+echo -e
 
 
 

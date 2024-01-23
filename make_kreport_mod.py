@@ -108,7 +108,7 @@ def main():
     if args.kraken_file:
         kraken_file_list.append(args.kraken_file)
     else:
-        for file in glob.glob(args.kraken_dir+'/*'):
+        for file in glob.glob(args.kraken_dir+'/*out.txt'):
             if file not in kraken_file_list:
                 kraken_file_list.append(file)
             else:
