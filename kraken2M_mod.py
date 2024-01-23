@@ -88,6 +88,9 @@ for af in os.listdir(args['input']):
     if len(suffix) == 2:
         if suffix[1] in af:
             allFileNames.append(af)
+print("List of files")
+for i in allFileNames:
+    print(i)
 fileNameList = [f.replace(suffix[0], '') for f in allFileNames]
 mode = 'single-end'
 if len(suffix) == 2:
@@ -95,6 +98,8 @@ if len(suffix) == 2:
     fileNameList = list(set(fileNameList))
     fileNameList.sort()
     mode = 'paired-end'
+for i in fileNameList:
+    print(i)
 logging.info(str(len(fileNameList)) + ' ' + mode + ' samples')
 
 # %% concatenate reads
