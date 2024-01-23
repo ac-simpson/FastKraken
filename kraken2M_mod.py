@@ -154,7 +154,7 @@ logging.info('*' * 15 + ' count reads ' + '*' * 15)
 ## Sometimes fasta file lines are wrapped in a way that makes counting by number of lines in the file inaccurate
 ## This does not account for that situation in a fastq nor if the number of sequences between for and rev don't match
 ## Nor a situation where a fasta file is compressed (but who would do such a thing?)
-def fasta_or_fastq(infile)
+def fasta_or_fastq(infile):
     firstline=open(infile).readline()
     if firstline.startswith(">"):
         return("fasta")
@@ -167,6 +167,7 @@ def countfastaReads(infile):
 readCounts = []
 for i,f in enumerate(fileNameList):
     current_file = args['input'] + '/' + fileNameList[i] + suffix[0]
+    filetype=fasta_or_fastq(current_file)
     if args['gzip_compressed'] or filetype=="fastq":
         catMode = 'cat'
         if args['gzip_compressed']:
