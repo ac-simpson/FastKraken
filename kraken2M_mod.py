@@ -39,22 +39,22 @@ Oflag.add_argument('-t', '--threads', action="store", type=str, default = 1, req
 Oflag.add_argument('--gzip-compressed', action="store_true", required = False,
                     help = "Input files are compressed with gzip.")
 
-#opt = parser.parse_args()
-#args = vars(opt)
-if not debug:
-    opt = parser.parse_args()
-    args = vars(opt)
-if debug:
-    parser.print_help()
-    opt = parser.parse_args(['--input', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/cleandata',
-                            '--suffix', 'R1.fq,R2.fq',
-                            '--db', '/share/home/jianglab/weixin/data/kraken2/cdb/viral',
-                            '--kraken', '/share/home/jianglab/weixin/bin/kraken2/kraken2',
-                            '--kraken-tools', '/share/home/jianglab/weixin/workspace/mytools/ktools/KrakenTools',
-                            '--output', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/kraken2_output',
-                            '--threads', '8'])
-    args = vars(opt)
-    print(args)
+opt = parser.parse_args()
+args = vars(opt)
+#if not debug:
+#    opt = parser.parse_args()
+#    args = vars(opt)
+#if debug:
+#    parser.print_help()
+#    opt = parser.parse_args(['--input', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/cleandata',
+#                            '--suffix', 'R1.fq,R2.fq',
+#                            '--db', '/share/home/jianglab/weixin/data/kraken2/cdb/viral',
+#                            '--kraken', '/share/home/jianglab/weixin/bin/kraken2/kraken2',
+#                            '--kraken-tools', '/share/home/jianglab/weixin/workspace/mytools/ktools/KrakenTools',
+#                            '--output', '/share/home/jianglab/weixin/workspace/classified_by_kraken2/4-500-soil/kraken2_output',
+#                            '--threads', '8'])
+#    args = vars(opt)
+#    print(args)
 
 args['input'] = os.path.abspath(args['input'])
 args['output'] = os.path.abspath(args['output'])
@@ -88,9 +88,7 @@ for af in os.listdir(args['input']):
     if len(suffix) == 2:
         if suffix[1] in af:
             allFileNames.append(af)
-print("List of files")
-for i in allFileNames:
-    print(i)
+
 fileNameList = [f.replace(suffix[0], '') for f in allFileNames]
 mode = 'single-end'
 if len(suffix) == 2:
@@ -98,8 +96,7 @@ if len(suffix) == 2:
     fileNameList = list(set(fileNameList))
     fileNameList.sort()
     mode = 'paired-end'
-for i in fileNameList:
-    print(i)
+
 logging.info(str(len(fileNameList)) + ' ' + mode + ' samples')
 
 # %% concatenate reads
@@ -152,14 +149,32 @@ else:
     kstat = os.system(command)
     if kstat == 0:logging.info('end')
 
-# %% count reads for each sample
+# %% count reads for each sample.
 logging.info('*' * 15 + ' count reads ' + '*' * 15)
-def countReads(infile):
+## Sometimes fasta file lines are wrapped in a way that makes counting by number of lines in the file inaccurate
+## This does not account for that situation in a fastq nor if the number of sequences between for and rev don't match
+## Nor a situation where a fasta file is compressed (but who would do such a thing?)
+def fasta_or_fastq(infile)
+    firstline=open(infile).readline()
+    if firstline.startswith(">"):
+        return("fasta")
+    elif firstline.startswith("@"):
+        return("fastq")
+    else:
+        print(infile, "does not seem to be a fastq or fasta file")
+def countfastaReads(infile):
     return(len([1 for line in open(infile) if line.startswith(">")]))
 readCounts = []
 for i,f in enumerate(fileNameList):
     current_file = args['input'] + '/' + fileNameList[i] + suffix[0]
-    rn = countReads(current_file)
+    if args['gzip_compressed'] or filetype=="fastq":
+        catMode = 'cat'
+        if args['gzip_compressed']:
+            catMode = 'zcat'
+        command = [catMode, current_file, '| echo $((`wc -l`/4))']
+        rn = os.popen(' '.join(command)).read().strip()
+    if filetype=="fasta":
+        rn = countfastaReads(current_file)
     logging.info(str(i+1) + '/' + str(len(fileNameList)) + ': ' + f + suffix[0] + ' : ' + str(rn))
     readCounts.append(int(rn))
 
