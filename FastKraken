@@ -85,8 +85,8 @@ echo "Directory of input sequencing files: $in_dir"
 echo "Suffix indicating ending of sequencing file names: $suffix"
 echo "Location of Kraken database: $kraken_db"
 echo "Number of threads: $threads"
-echo "Input files are gzipped: $gzipped"\\n
-echo -e
+echo "Input files are gzipped: $gzipped"
+echo -e "Use read lengths instead of read counts to generate kreports: $readlength"
 
 
 
