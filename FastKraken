@@ -3,6 +3,7 @@
 
 gzipped=false
 readlength=true
+threads=1
 
 
 #Show options
@@ -33,7 +34,8 @@ do
         r) readlength=${OPTARG};;
         l) location_of_github_scripts=${OPTARG};;
         h) help ;;
-#        \?) help ;;
+        \?) echo "not a valid option"
+            help ;;
     esac
 done
 
